@@ -1,0 +1,38 @@
+<.header class="">
+  My Boards
+  <:actions>
+    <.link patch={~p"/boards/new"}>
+      <.button>New Board</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table
+  id="boards"
+  rows={@streams.boards_collection}
+  row_click={fn {_id, boards} -> JS.navigate(~p"/boards/#{boards}") end}
+>
+  <:col :let={{_id, boards}}>
+    <.live_component
+      module={BoardlyWeb.BoardLive.BracketComponent}
+      id={boards.id}
+      bracket={boards}
+    />
+  </:col>
+</.table>
+
+<.modal
+  :if={@live_action in [:new, :edit]}
+  id="list-modal"
+  show
+  on_cancel={JS.patch(~p"/boards")}
+>
+  <.live_component
+    module={BoardlyWeb.BoardLive.FormComponent}
+    id={@board.id || :new}
+    title={@page_title}
+    action={@live_action}
+    board={@board}
+    patch={~p"/boards"}
+  />
+</.modal>

@@ -1,0 +1,21 @@
+<header class="px-4 sm:px-6 lg:px-8">
+  <div class="flex items-center justify-between border-b border-zinc-100 text-sm py-3">
+    <div class="flex items-center gap-2">
+      <a href="/">
+        <img src={~p"/images/Boardly-logo.png"} width="120" />
+      </a>
+     
+    </div>
+    <div class="flex items-center gap-4 font-semibold leading-6 text-zinc-900">
+    <div class="flex items-center justify-center rounded-full">
+        <img src={"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSxCVP8q0falT1WI_U-_NMZOjQADK5MZAdHsg&s"} width="36" class="object-cover rounded-3xl cursor-pointer"/>
+    </div>
+    </div>
+  </div>
+</header>
+<main class="px-4 py-8 sm:px-6 lg:px-8">
+  <div class="">
+    <.flash_group flash={@flash} />
+    <%= @inner_content %>
+  </div>
+</main>
