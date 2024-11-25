@@ -14,7 +14,27 @@
 </.header>
 
 <.list>
-  <:item title="Position">Assigned to</:item>
+  <:item title="Assigned to">
+    <div class="flex items-center justify-between">
+      <span class="text-sm text-gray-600">
+        <%= if @card.assigned_user do %>
+          <%= @card.assigned_user.email %>
+        <% else %>
+          No user assigned
+        <% end %>
+      </span>
+      
+      <%= if @card.assigned_user do %>
+        <button
+          phx-click="unassign_user"
+          class="text-sm text-red-600 hover:text-red-800 flex items-center gap-1"
+        >
+          <i class="fas fa-user-minus"></i>
+          <span>Remove</span>
+        </button>
+      <% end %>
+    </div>
+  </:item>
 </.list>
 
 

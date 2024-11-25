@@ -45,16 +45,34 @@
   <%= for list <- @lists do %>
     <div class="bg-white shadow-lg rounded-lg w-80 p-4 flex flex-col gap-4">
       <.header class="flex justify-between items-center">
-        <p class="text-lg font-semibold text-gray-700"><%= list.name %></p>
+        <div class="flex items-center gap-2">
+          <p class="text-lg font-semibold text-gray-700"><%= list.name %></p>
+        </div>
         <:actions>
-          <.link
-            patch={~p"/boards/#{@board.id}/list/#{list.id}/new_card"}
-            phx-click={JS.push_focus()}
-          >
-            <.button>
-              Add Card
-            </.button>
-          </.link>
+          <div class="flex items-center gap-3">
+            <.link
+              patch={~p"/boards/#{@board.id}/list/#{list.id}/edit"}
+              phx-click={JS.push_focus()}
+              class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-all duration-200"
+            >
+              <i class="fas fa-edit"></i>
+            </.link>
+            <.link
+              patch={~p"/boards/#{@board.id}/list/#{list.id}/new_card"}
+              phx-click={JS.push_focus()}
+              class="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-full transition-all duration-200"
+            >
+              <i class="fas fa-plus"></i>
+            </.link>
+            <button
+              phx-click="delete_list"
+              phx-value-id={list.id}
+              data-confirm="Are you sure you want to delete this list and all its cards?"
+              class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-all duration-200"
+            >
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
         </:actions>
       </.header>
 
@@ -84,7 +102,7 @@
               <p class="text-xs text-gray-600">Assign to:</p>
               <div class="flex items-center gap-2">
                 <button
-                  phx-click={JS.push("assign_member", value: %{card_id: card.id})}
+                  phx-click={JS.patch(~p"/boards/#{@board.id}/list/#{list.id}/assign_member/#{card.id}")}
                   class="text-gray-500 hover:text-blue-500"
                 >
                   <i class="fas fa-user-plus"></i>
@@ -185,6 +203,39 @@
     id={:members}
     title={@page_title}
     members={@members}
+    patch={~p"/boards/#{@board}"}
+  />
+</.modal>
+
+<.modal
+  :if={@live_action == :edit_list}
+  id="list-modal"
+  show
+  on_cancel={JS.patch(~p"/boards/#{@board}")}
+>
+  <.live_component
+    module={BoardlyWeb.ListLive.FormComponent}
+    id={@list.id}
+    title={@page_title}
+    action={@live_action}
+    list={@list}
+    board={@board.id}
+    patch={~p"/boards/#{@board}"}
+  />
+</.modal>
+
+<.modal
+  :if={@live_action == :assign_member}
+  id="assign-member-modal"
+  show
+  on_cancel={JS.patch(~p"/boards/#{@board}")}
+>
+  <.live_component
+    module={BoardlyWeb.CardLive.AssignMemberComponent}
+    id={:assign_member}
+    title={@page_title}
+    card={@card}
+    available_members={@members}
     patch={~p"/boards/#{@board}"}
   />
 </.modal>

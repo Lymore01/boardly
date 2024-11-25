@@ -59,6 +59,18 @@ defmodule BoardlyWeb.BoardLive.Show do
      |> assign(:cards, [])}
   end
 
+  def handle_params(%{"id" => id, "list_id" => list_id}, _, socket) when socket.assigns.live_action == :edit_list do
+    board = Boards.get_board_with_lists(id)
+    list = Lists.get_list!(list_id)
+
+    {:noreply,
+     socket
+     |> assign(:page_title, page_title(socket.assigns.live_action))
+     |> assign(:board, board)
+     |> assign(:lists, board.lists)
+     |> assign(:list, list)}
+  end
+
   def handle_event("remove_card", %{"card_id" => card_id}, socket) do
     card = Cards.get_card!(card_id)
 
@@ -89,6 +101,49 @@ defmodule BoardlyWeb.BoardLive.Show do
     end
   end
 
+  @impl true
+  def handle_info({BoardlyWeb.CardLive.FormComponent, {:saved, card}}, socket) do
+    # Refresh the lists to include the new card
+    board = Boards.get_board_with_lists(socket.assigns.board.id)
+    
+    {:noreply,
+     socket
+     |> assign(:lists, board.lists)
+     |> put_flash(:info, "Card saved successfully")}
+  end
+
+  @impl true
+  def handle_info({BoardlyWeb.CardLive.AssignMemberComponent, {:member_assigned, card_id}}, socket) do
+    # Refresh the board data to show the new assignment
+    board = Boards.get_board_with_lists(socket.assigns.board.id)
+    
+    {:noreply,
+     socket
+     |> assign(:lists, board.lists)
+     |> put_flash(:info, "Member assigned successfully")}
+  end
+
+  @impl true
+  def handle_event("delete_list", %{"id" => list_id}, socket) do
+    list = Lists.get_list!(list_id)
+  IO.inspect(list)
+
+    case Lists.delete_list(list) do
+      {:ok, _list} ->
+        board = Boards.get_board_with_lists(socket.assigns.board.id)
+
+        {:noreply,
+         socket
+         |> assign(:lists, board.lists)
+         |> put_flash(:info, "List deleted successfully")}
+
+      {:error, _changeset} ->
+        {:noreply,
+         socket
+         |> put_flash(:error, "Could not delete list")}
+    end
+  end
+
   # Private helper function for setting page titles
   defp page_title(:show), do: "Show Board"
   defp page_title(:edit), do: "Edit Board"
@@ -97,4 +152,6 @@ defmodule BoardlyWeb.BoardLive.Show do
   defp page_title(:edit_card), do: "Edit Card"
   defp page_title(:add_members), do: "Add Members"
   defp page_title(:members), do: "All Members"
+  defp page_title(:edit_list), do: "Edit List"
+  defp page_title(:assign_member), do: "Assign Member"
 end

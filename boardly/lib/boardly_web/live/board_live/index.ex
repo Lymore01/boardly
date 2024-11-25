@@ -43,8 +43,18 @@ defmodule BoardlyWeb.BoardLive.Index do
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
     board = Boards.get_board!(id)
-    {:ok, _} = Boards.delete_board(board)
+    
+    case Boards.delete_board(board) do
+      {:ok, _deleted_board} ->
+        {:noreply,
+         socket
+         |> stream_delete(:boards_collection, board)
+         |> put_flash(:info, "Board deleted successfully")}
 
-    {:noreply, stream_delete(socket, :boards_collection, board)}
+      {:error, _changeset} ->
+        {:noreply,
+         socket
+         |> put_flash(:error, "Could not delete board")}
+    end
   end
 end

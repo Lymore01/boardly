@@ -33,6 +33,8 @@ defmodule BoardlyWeb.Router do
     live "/boards/:id/new_list", BoardLive.Show, :new_list
     live "/boards/:id/list/:list_id/new_card", BoardLive.Show, :new_card
     live "/boards/:id/list/:list_id/edit_card/:card_id", BoardLive.Show, :edit_card
+    live "/boards/:id/list/:list_id/edit", BoardLive.Show, :edit_list
+    live "/boards/:id/list/:list_id/assign_member/:card_id", BoardLive.Show, :assign_member
 
     live "/lists", ListLive.Index, :index
     live "/lists/new", ListLive.Index, :new

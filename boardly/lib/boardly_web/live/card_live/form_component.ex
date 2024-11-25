@@ -9,7 +9,9 @@ defmodule BoardlyWeb.CardLive.FormComponent do
     <div>
       <.header>
         <%= @title %>
-        <:subtitle>Use this form to manage card records in your database.</:subtitle>
+        <:subtitle>
+          <%= if @action == :edit_card, do: "Edit card details", else: "Create a new card" %>
+        </:subtitle>
       </.header>
 
       <.simple_form
@@ -22,9 +24,11 @@ defmodule BoardlyWeb.CardLive.FormComponent do
         <.input field={@form[:title]} type="text" label="Title" />
         <.input field={@form[:description]} type="text" label="Description" />
         <.input field={@form[:due_date]} type="datetime-local" label="Due date" />
-        <.input field={@form[:position]} type="number" label="Position" />
+        
         <:actions>
-          <.button phx-disable-with="Saving...">Save Card</.button>
+          <.button phx-disable-with="Saving...">
+            <%= if @action == :edit_card, do: "Update Card", else: "Create Card" %>
+          </.button>
         </:actions>
       </.simple_form>
     </div>
@@ -33,37 +37,27 @@ defmodule BoardlyWeb.CardLive.FormComponent do
 
   @impl true
   def update(%{card: card} = assigns, socket) do
+    changeset = Cards.change_card(card)
+
     {:ok,
      socket
      |> assign(assigns)
-     |> assign_new(:form, fn ->
-       to_form(Cards.change_card(card))
-     end)}
+     |> assign(:form, to_form(changeset))}
   end
 
   @impl true
   def handle_event("validate", %{"card" => card_params}, socket) do
-    changeset = Cards.change_card(socket.assigns.card, card_params)
-    {:noreply, assign(socket, form: to_form(changeset, action: :validate))}
+    changeset =
+      socket.assigns.card
+      |> Cards.change_card(card_params)
+      |> Map.put(:action, :validate)
+
+    {:noreply, assign(socket, :form, to_form(changeset))}
   end
 
+  @impl true
   def handle_event("save", %{"card" => card_params}, socket) do
     save_card(socket, socket.assigns.action, card_params)
-  end
-
-  defp save_card(socket, :edit, card_params) do
-    case Cards.update_card(socket.assigns.card, card_params) do
-      {:ok, card} ->
-        notify_parent({:saved, card})
-
-        {:noreply,
-         socket
-         |> put_flash(:info, "Card updated successfully")
-         |> push_patch(to: socket.assigns.patch)}
-
-      {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign(socket, form: to_form(changeset))}
-    end
   end
 
   defp save_card(socket, :edit_card, card_params) do
@@ -77,13 +71,13 @@ defmodule BoardlyWeb.CardLive.FormComponent do
          |> push_patch(to: socket.assigns.patch)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign(socket, form: to_form(changeset))}
+        {:noreply, assign(socket, :form, to_form(changeset))}
     end
   end
 
   defp save_card(socket, :new_card, card_params) do
     card_params = Map.put(card_params, "list_id", socket.assigns.list)
-    IO.inspect(card_params)
+
     case Cards.create_card(card_params) do
       {:ok, card} ->
         notify_parent({:saved, card})
@@ -94,7 +88,7 @@ defmodule BoardlyWeb.CardLive.FormComponent do
          |> push_patch(to: socket.assigns.patch)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign(socket, form: to_form(changeset))}
+        {:noreply, assign(socket, :form, to_form(changeset))}
     end
   end
 

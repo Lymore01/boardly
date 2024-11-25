@@ -155,7 +155,14 @@ defmodule Boardly.Boards do
 
   """
   def delete_board(%Board{} = board) do
-    Repo.delete(board)
+    try do
+      Repo.delete(board)
+    rescue
+      e in Ecto.ConstraintError ->
+        {:error, Ecto.Changeset.change(board) |> Ecto.Changeset.add_error(:id, "Cannot delete board with existing lists or cards")}
+      _ ->
+        {:error, Ecto.Changeset.change(board) |> Ecto.Changeset.add_error(:id, "Something went wrong")}
+    end
   end
 
   @doc """
@@ -169,5 +176,30 @@ defmodule Boardly.Boards do
   """
   def change_board(%Board{} = board, attrs \\ %{}) do
     Board.changeset(board, attrs)
+  end
+
+  def change_board_member(attrs \\ %{}) do
+    # Create a simple changeset for the form
+    types = %{user_id: :integer}
+    {%{}, types}
+    |> Ecto.Changeset.cast(attrs, [:user_id])
+    |> Ecto.Changeset.validate_required([:user_id])
+  end
+
+  def user_in_board?(user_id, board_id) do
+    # Check if user is already a member of the board
+    query = from ub in "users_boards",
+      where: ub.user_id == ^user_id and ub.board_id == ^board_id
+    
+    Repo.exists?(query)
+  end
+
+  def add_user_to_board(user_id, board_id) when is_binary(user_id) do
+    add_user_to_board(String.to_integer(user_id), board_id)
+  end
+
+  def add_user_to_board(user_id, board_id) do
+    # Your existing logic for adding a user to a board
+    # Make sure it handles the user_id as an integer
   end
 end

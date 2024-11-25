@@ -35,7 +35,11 @@ defmodule Boardly.Cards do
       ** (Ecto.NoResultsError)
 
   """
-  def get_card!(id), do: Repo.get!(Card, id)
+  def get_card!(id) do
+    Card
+    |> Repo.get!(id)
+    |> Repo.preload(:assigned_user)
+  end
 
   @doc """
   Creates a card.
@@ -100,5 +104,21 @@ defmodule Boardly.Cards do
   """
   def change_card(%Card{} = card, attrs \\ %{}) do
     Card.changeset(card, attrs)
+  end
+
+  def change_card_assignment(%Card{} = card) do
+    Card.assignment_changeset(card, %{})
+  end
+
+  def assign_user_to_card(%Card{} = card, user_id) do
+    card
+    |> Card.assignment_changeset(%{"user_id" => user_id})
+    |> Repo.update()
+  end
+
+  def unassign_user(%Card{} = card) do
+    card
+    |> Card.assignment_changeset(%{"user_id" => nil})
+    |> Repo.update()
   end
 end
