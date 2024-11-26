@@ -5,7 +5,7 @@ defmodule Boardly.Lists.List do
   schema "lists" do
     field :name, :string
     belongs_to :board, Boardly.Boards.Board
-    has_many :cards, Boardly.Cards.Card
+    has_many :cards, Boardly.Cards.Card, on_delete: :delete_all
 
     timestamps()
   end

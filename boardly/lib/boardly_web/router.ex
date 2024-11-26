@@ -22,36 +22,7 @@ defmodule BoardlyWeb.Router do
 
     get "/", PageController, :home
 
-    live "/boards", BoardLive.Index, :index
-    live "/boards/new", BoardLive.Index, :new
-    live "/boards/:id/edit", BoardLive.Index, :edit
-
-    live "/boards/:id", BoardLive.Show, :show
-    live "/boards/:id/add_members", BoardLive.Show, :add_members
-    live "/boards/:id/members", BoardLive.Show, :members
-    live "/boards/:id/show/edit", BoardLive.Show, :edit
-    live "/boards/:id/new_list", BoardLive.Show, :new_list
-    live "/boards/:id/list/:list_id/new_card", BoardLive.Show, :new_card
-    live "/boards/:id/list/:list_id/edit_card/:card_id", BoardLive.Show, :edit_card
-    live "/boards/:id/list/:list_id/edit", BoardLive.Show, :edit_list
-    live "/boards/:id/list/:list_id/assign_member/:card_id", BoardLive.Show, :assign_member
-
-    live "/lists", ListLive.Index, :index
-    live "/lists/new", ListLive.Index, :new
-    live "/lists/:id/edit", ListLive.Index, :edit
-
-    live "/lists/:id", ListLive.Show, :show
-    live "/lists/:id/show/edit", ListLive.Show, :edit
-
-    live "/cards", CardLive.Index, :index
-    live "/cards/new", CardLive.Index, :new
-    live "/cards/:id/edit", CardLive.Index, :edit
-
-    live "/cards/:id", CardLive.Show, :show
-    live "/cards/:id/show/edit", CardLive.Show, :edit
-
-
-
+  
   end
 
   # Other scopes may use custom stacks.
@@ -93,6 +64,19 @@ defmodule BoardlyWeb.Router do
 
   scope "/", BoardlyWeb do
     pipe_through [:browser, :require_authenticated_user]
+
+    live "/boards", BoardLive.Index, :index
+    live "/boards/new", BoardLive.Index, :new
+    live "/boards/:id/edit", BoardLive.Index, :edit
+
+    live "/boards/:id", BoardLive.Show, :show
+    live "/boards/:id/add_members", BoardLive.Show, :add_members
+    live "/boards/:id/members", BoardLive.Show, :members
+    live "/boards/:id/show/edit", BoardLive.Show, :edit
+    live "/boards/:id/new_list", BoardLive.Show, :new_list
+    live "/boards/:id/list/:list_id/new_card", BoardLive.Show, :new_card
+    live "/boards/:id/list/:list_id/edit_card/:card_id", BoardLive.Show, :edit_card
+    live "/boards/:id/list/:list_id/edit", BoardLive.Show, :edit_list
 
     get "/users/settings", UserSettingsController, :edit
     put "/users/settings", UserSettingsController, :update

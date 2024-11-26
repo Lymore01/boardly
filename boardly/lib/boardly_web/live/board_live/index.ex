@@ -3,11 +3,16 @@ defmodule BoardlyWeb.BoardLive.Index do
 
   alias Boardly.Boards
   alias Boardly.Boards.Board
-  # alias Boardly.Lists.List
+  alias Boardly.Accounts
 
   @impl true
-  def mount(_params, _session, socket) do
-    {:ok, stream(socket, :boards_collection, Boards.list_boards())}
+  def mount(_params, session, socket) do
+    user = Accounts.get_user_by_session_token(session["user_token"])
+    
+    {:ok,
+     socket
+     |> assign(:current_user, user)
+     |> stream(:boards_collection, Boards.list_boards(user.id))}
   end
 
   @impl true
@@ -15,11 +20,17 @@ defmodule BoardlyWeb.BoardLive.Index do
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
   end
 
-  defp apply_action(socket, :edit, %{"id" => id}) do
-    socket
-    |> assign(:page_title, "Edit Board")
-    |> assign(:board, Boards.get_board!(id))
-  end
+ defp apply_action(socket, :edit, %{"id" => id}) do
+  socket
+  |> assign(:page_title, "Edit Board")
+  |> assign(:board, Boards.get_board!(id, socket.assigns.current_user.id))
+end
+
+defp apply_action(socket, :new, _params) do
+  socket
+  |> assign(:page_title, "New Board")
+  |> assign(:board, %Board{})
+end
 
 
 
@@ -42,7 +53,7 @@ defmodule BoardlyWeb.BoardLive.Index do
 
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
-    board = Boards.get_board!(id)
+    board = Boards.get_board!(id, socket.assigns.current_user.id)
     
     case Boards.delete_board(board) do
       {:ok, _deleted_board} ->

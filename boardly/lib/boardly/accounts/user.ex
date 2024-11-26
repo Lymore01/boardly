@@ -8,8 +8,7 @@ defmodule Boardly.Accounts.User do
     field :hashed_password, :string, redact: true
     field :current_password, :string, virtual: true, redact: true
     field :confirmed_at, :utc_datetime
-    belongs_to :board, Boardly.Boards.Board
-    # has_many :boards, Boardly.Boards.Board
+    has_many :boards, Boardly.Boards.Board
 
     timestamps(type: :utc_datetime)
   end

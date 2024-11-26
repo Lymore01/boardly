@@ -36,10 +36,9 @@ defmodule Boardly.Cards do
 
   """
   def get_card!(id) do
-    Card
-    |> Repo.get!(id)
-    |> Repo.preload(:assigned_user)
-  end
+  Card
+  |> Repo.get!(id)
+end
 
   @doc """
   Creates a card.
@@ -93,6 +92,12 @@ defmodule Boardly.Cards do
     Repo.delete(card)
   end
 
+  def toggle_complete(%Card{} = card) do
+  card
+  |> Card.changeset(%{completed: !card.completed})
+  |> Repo.update()
+end
+
   @doc """
   Returns an `%Ecto.Changeset{}` for tracking card changes.
 
@@ -110,15 +115,5 @@ defmodule Boardly.Cards do
     Card.assignment_changeset(card, %{})
   end
 
-  def assign_user_to_card(%Card{} = card, user_id) do
-    card
-    |> Card.assignment_changeset(%{"user_id" => user_id})
-    |> Repo.update()
-  end
-
-  def unassign_user(%Card{} = card) do
-    card
-    |> Card.assignment_changeset(%{"user_id" => nil})
-    |> Repo.update()
-  end
+  
 end

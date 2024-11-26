@@ -31,18 +31,23 @@ defmodule BoardlyWeb.BoardLive.FormComponent do
 
   @impl true
   def update(%{board: board} = assigns, socket) do
+    changeset = Boards.change_board(board)
+
     {:ok,
      socket
      |> assign(assigns)
-     |> assign_new(:form, fn ->
-       to_form(Boards.change_board(board))
-     end)}
+     |> assign(:current_user, assigns[:current_user])
+     |> assign(:form, to_form(changeset))}
   end
 
   @impl true
   def handle_event("validate", %{"board" => board_params}, socket) do
-    changeset = Boards.change_board(socket.assigns.board, board_params)
-    {:noreply, assign(socket, form: to_form(changeset, action: :validate))}
+    changeset =
+      socket.assigns.board
+      |> Boards.change_board(Map.put(board_params, "user_id", socket.assigns.board.user_id))
+      |> Map.put(:action, :validate)
+
+    {:noreply, assign(socket, :form, to_form(changeset))}
   end
 
   def handle_event("save", %{"board" => board_params}, socket) do
@@ -60,11 +65,13 @@ defmodule BoardlyWeb.BoardLive.FormComponent do
          |> push_patch(to: socket.assigns.patch)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign(socket, form: to_form(changeset))}
+        {:noreply, assign(socket, :form, to_form(changeset))}
     end
   end
 
   defp save_board(socket, :new, board_params) do
+    board_params = Map.put(board_params, "user_id", socket.assigns.current_user.id)
+    
     case Boards.create_board(board_params) do
       {:ok, board} ->
         notify_parent({:saved, board})
@@ -75,7 +82,7 @@ defmodule BoardlyWeb.BoardLive.FormComponent do
          |> push_patch(to: socket.assigns.patch)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign(socket, form: to_form(changeset))}
+        {:noreply, assign(socket, :form, to_form(changeset))}
     end
   end
 

@@ -1,21 +1,20 @@
 defmodule Boardly.Boards.Board do
   use Ecto.Schema
   import Ecto.Changeset
-  alias Boardly.Lists.List
 
   schema "boards" do
     field :name, :string
     field :description, :string
-    has_many :lists, List
-    has_many :users, Boardly.Accounts.User
+    belongs_to :user, Boardly.Accounts.User
+    has_many :lists, Boardly.Lists.List
 
-    timestamps(type: :utc_datetime)
+    timestamps()
   end
 
   @doc false
   def changeset(board, attrs) do
     board
-    |> cast(attrs, [:name, :description])
-    |> validate_required([:name, :description])
+    |> cast(attrs, [:name, :description, :user_id])
+    |> validate_required([:name, :user_id])
   end
 end

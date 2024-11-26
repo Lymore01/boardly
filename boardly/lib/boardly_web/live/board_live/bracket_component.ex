@@ -1,33 +1,30 @@
 defmodule BoardlyWeb.BoardLive.BracketComponent do
   use BoardlyWeb, :live_component
-  # use Phoenix.LiveComponent
 
   def render(assigns) do
     ~H"""
-    <div class="bg-gradient-to-r from-blue-500 via-indigo-600 to-purple-600 rounded-lg p-6 text-white shadow-lg flex flex-row justify-between">
-      <div class="flex flex-col gap-3">
-        <h1 class="text-lg font-semibold capitalize"><%= @bracket.name %></h1>
-        <p class="text-xs"><%= @bracket.description %></p>
+    <div class="flex items-center justify-between bg-white p-4 rounded-lg shadow hover:shadow-md transition-all duration-200">
+      <div>
+        <h1 class="text-gray-900 font-medium"><%= @bracket.name %></h1>
+        <p class="text-sm text-gray-500"><%= @bracket.description %></p>
       </div>
 
-      <!-- Actions for Edit and Delete -->
-      <div class="mt-4 flex gap-4">
-        <!-- Edit Action -->
-        <.link
+      <div class="flex items-center gap-3 ml-4">
+        <.link 
           patch={~p"/boards/#{@bracket.id}/edit"}
-          class="bg-yellow-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-yellow-600 transition"
+          class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-all duration-200"
         >
-          Edit
+          <i class="fas fa-edit"></i>
         </.link>
-
-        <!-- Delete Action -->
-        <.link
-          phx-click={JS.push("delete", value: %{id: @bracket.id}) |> hide("#board-#{@bracket.id}")}
-          data-confirm="Are you sure?"
-          class="bg-red-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-red-600 transition"
+        
+        <button 
+          phx-click="delete"
+          phx-value-id={@bracket.id}
+          data-confirm="Are you sure you want to delete this board?"
+          class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-all duration-200"
         >
-          Delete
-        </.link>
+          <i class="fas fa-trash"></i>
+        </button>
       </div>
     </div>
     """

@@ -22,6 +22,7 @@ defmodule BoardlyWeb.ListLive.FormComponent do
         phx-submit="save"
       >
         <.input field={@form[:name]} type="text" label="List Name" />
+        <.input field={@form[:board_id]} type="hidden" value={@board} />
         
         <:actions>
           <.button phx-disable-with="Saving...">
@@ -47,14 +48,14 @@ defmodule BoardlyWeb.ListLive.FormComponent do
   def handle_event("validate", %{"list" => list_params}, socket) do
     changeset =
       socket.assigns.list
-      |> Lists.change_list(list_params)
+      |> Lists.change_list(Map.put(list_params, "board_id", socket.assigns.board))
       |> Map.put(:action, :validate)
 
     {:noreply, assign_form(socket, changeset)}
   end
 
   def handle_event("save", %{"list" => list_params}, socket) do
-    save_list(socket, socket.assigns.action, list_params)
+    save_list(socket, socket.assigns.action, Map.put(list_params, "board_id", socket.assigns.board))
   end
 
   defp save_list(socket, :edit_list, list_params) do

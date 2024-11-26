@@ -20,14 +20,20 @@ defmodule Boardly.Boards do
       [%Board{}, ...]
 
   """
-  def list_boards do
-    Repo.all(Board)
+   def list_boards(user_id) do
+    from(b in Board,
+      where: b.user_id == ^user_id,
+      order_by: [desc: b.inserted_at]
+    )
+    |> Repo.all()
   end
 
   # preload cards
-  def get_board_with_lists(board_id) do
-    Repo.get!(Board, board_id)
-    |> Repo.preload(lists: [:cards])
+  def get_board!(id, user_id) do
+    from(b in Board,
+      where: b.id == ^id and b.user_id == ^user_id
+    )
+    |> Repo.one!()
   end
 
   def get_board_with_users(board_id) do
@@ -35,72 +41,28 @@ defmodule Boardly.Boards do
     |> Repo.preload(:users)
   end
 
-  def invite_user_to_board(user_email, board_id) do
-    # boards = Repo.get!(Board, board_id) |> Repo.preload(:users)
-    case Accounts.get_user_by_email(user_email) do
-      nil ->
-        {:error, "User not found"}
-
-      %User{} = user ->
-        case Repo.get(Boardly.Boards.Board, board_id) do
-          nil ->
-            {:error, "Board not found"}
-
-          %Board{} = _board ->
-            if user.board_id == board_id do
-              {:error, "User is already a member of this board."}
-            else
-              changeset =
-                user
-                |> Ecto.Changeset.change(%{board_id: board_id})
-
-              case Repo.update(changeset) do
-                {:ok, _updated_user} ->
-                  {:ok, "#{user_email} has been invited to the board."}
-
-                {:error, changeset} ->
-                  {:error, "Failed to invite user: #{inspect(changeset.errors)}"}
-              end
-            end
-        end
-    end
-  end
-
-  def remove_user_from_board(user_id) do
-    case Repo.get(Boardly.Accounts.User, user_id) do
-      nil ->
-        {:error, "User not found"}
-
-      %User{} = user ->
-        changeset =
-          user
-          |> Ecto.Changeset.change(%{board_id: nil})
-
-        case Repo.update(changeset) do
-          {:ok, _updated_user} ->
-            {:ok, "#{user.email} has been removed from the board."}
-
-          {:error, changeset} ->
-            {:error, "Failed to remove user: #{inspect(changeset.errors)}"}
-        end
-    end
+   def get_board_with_lists(id, user_id) do
+    from(b in Board,
+      where: b.id == ^id and b.user_id == ^user_id,
+      preload: [lists: [cards: []]]
+    )
+    |> Repo.one()
   end
 
   @doc """
   Gets a single board.
 
-  Raises `Ecto.NoResultsError` if the Board does not exist.
+  Raises `Ecto.NoResultsError` if the Board does not exist or doesn't belong to the user.
 
   ## Examples
 
-      iex> get_board!(123)
+      iex> get_board!(123, user_id)
       %Board{}
 
-      iex> get_board!(456)
+      iex> get_board!(456, user_id)
       ** (Ecto.NoResultsError)
 
   """
-  def get_board!(id), do: Repo.get!(Board, id)
 
   def get_lists_by_board(board_id) do
     Repo.all(from l in List, where: l.board_id == ^board_id)
@@ -158,7 +120,7 @@ defmodule Boardly.Boards do
     try do
       Repo.delete(board)
     rescue
-      e in Ecto.ConstraintError ->
+      _e in Ecto.ConstraintError ->
         {:error, Ecto.Changeset.change(board) |> Ecto.Changeset.add_error(:id, "Cannot delete board with existing lists or cards")}
       _ ->
         {:error, Ecto.Changeset.change(board) |> Ecto.Changeset.add_error(:id, "Something went wrong")}
@@ -178,28 +140,9 @@ defmodule Boardly.Boards do
     Board.changeset(board, attrs)
   end
 
-  def change_board_member(attrs \\ %{}) do
-    # Create a simple changeset for the form
-    types = %{user_id: :integer}
-    {%{}, types}
-    |> Ecto.Changeset.cast(attrs, [:user_id])
-    |> Ecto.Changeset.validate_required([:user_id])
-  end
+  
 
-  def user_in_board?(user_id, board_id) do
-    # Check if user is already a member of the board
-    query = from ub in "users_boards",
-      where: ub.user_id == ^user_id and ub.board_id == ^board_id
-    
-    Repo.exists?(query)
-  end
+  
 
-  def add_user_to_board(user_id, board_id) when is_binary(user_id) do
-    add_user_to_board(String.to_integer(user_id), board_id)
-  end
-
-  def add_user_to_board(user_id, board_id) do
-    # Your existing logic for adding a user to a board
-    # Make sure it handles the user_id as an integer
-  end
+  
 end

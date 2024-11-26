@@ -6,8 +6,8 @@ defmodule Boardly.Cards.Card do
     field :title, :string
     field :description, :string
     field :due_date, :utc_datetime
+    field :completed, :boolean, default: false
     belongs_to :list, Boardly.Lists.List
-    belongs_to :assigned_user, Boardly.Accounts.User, foreign_key: :user_id
 
     timestamps()
   end
@@ -15,14 +15,7 @@ defmodule Boardly.Cards.Card do
   @doc false
   def changeset(card, attrs) do
     card
-    |> cast(attrs, [:title, :description, :due_date, :list_id])
+    |> cast(attrs, [:title, :description, :due_date, :completed, :list_id])
     |> validate_required([:title, :list_id])
-  end
-
-  def assignment_changeset(card, attrs) do
-    card
-    |> cast(attrs, [:user_id])
-    |> validate_required([:user_id])
-    |> foreign_key_constraint(:user_id)
   end
 end
